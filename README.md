@@ -33,7 +33,7 @@ model.imshow_wxyq()
 
 
 
-### If run several models for comparison 
+### Run several models for comparison 
 ```python
 from fun_models_class import Models
 
