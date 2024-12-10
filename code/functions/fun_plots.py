@@ -765,67 +765,67 @@ def pointplot_x(x,models, xlabel, color ='bo-',linewidth = 2,title = None,
 
 
 
-# def pointplot_2axis(y1,y2,model_names,labels,ylabels,colors=None,title=None,ylims=[None,None],loc='best',savepath = None,
-#                     figname=None,xlabel =None,figsize=None,ticksize = 4,xticks=None,
-#                     x1 = None, x2 = None):
-#     """
-#     plot 2 objects [y1,y2] with two yaixs
-#     models:  xticks
-#     labels: labels of [y1, y2]
-#     title:
-#     """
+def pointplot_2axis(y1,y2,model_names,labels,ylabels,colors=None,title=None,ylims=[None,None],loc='best',savepath = None,
+                    figname=None,xlabel =None,figsize=None,ticksize = 4,xticks=None,
+                    x1 = None, x2 = None):
+    """
+    plot 2 objects [y1,y2] with two yaixs
+    models:  xticks
+    labels: labels of [y1, y2]
+    title:
+    """
 
-#     fig, host = plt.subplots(figsize = figsize)
-#     # fig.subplots_adjust(right=0.9)
-#     par1 = host.twinx()
-#     if colors is None:
-#         colors =['b','k']
+    fig, host = plt.subplots(figsize = figsize)
+    # fig.subplots_adjust(right=0.9)
+    par1 = host.twinx()
+    if colors is None:
+        colors =['b','k']
 
-#     if x1 is None:
-#         x1 = np.arange(0,len(y1))
-#     if x2 is None:
-#         x2 = np.arange(0,len(y2))
-#     p1, = host.plot(x1,y1, "o-",color=colors[0], label=labels[0])
-#     p2, = par1.plot(x2,y2, "o-", color=colors[1],label=labels[1])
+    if x1 is None:
+        x1 = np.arange(0,len(y1))
+    if x2 is None:
+        x2 = np.arange(0,len(y2))
+    p1, = host.plot(x1,y1, "o-",color=colors[0], label=labels[0])
+    p2, = par1.plot(x2,y2, "o-", color=colors[1],label=labels[1])
 
-#     host.set_xlim(-0.5,len(model_names)-0.5)
-#     host.set_xticks(np.linspace(0,len(model_names)-1,len(model_names)))
-#     if xticks is None:
-#         xticks = model_names
-#     host.set_xticklabels(xticks,rotation = 45)
-#     host.set_ylim(ylims[0])
-#     par1.set_ylim(ylims[1])
-#     if xlabel is not None:
-#         host.set_xlabel(xlabel)
-#     host.set_ylabel(ylabels[0])
-#     par1.set_ylabel(ylabels[1])
-#     host.set_title(title)
-#     host.yaxis.label.set_color(p1.get_color())
-#     par1.yaxis.label.set_color(p2.get_color())
+    host.set_xlim(-0.5,len(model_names)-0.5)
+    host.set_xticks(np.linspace(0,len(model_names)-1,len(model_names)))
+    if xticks is None:
+        xticks = model_names
+    host.set_xticklabels(xticks,rotation = 45)
+    host.set_ylim(ylims[0])
+    par1.set_ylim(ylims[1])
+    if xlabel is not None:
+        host.set_xlabel(xlabel)
+    host.set_ylabel(ylabels[0])
+    par1.set_ylabel(ylabels[1])
+    host.set_title(title)
+    host.yaxis.label.set_color(p1.get_color())
+    par1.yaxis.label.set_color(p2.get_color())
 
-#     tkw = dict(labelsize=ticksize, width=1.5)
-#     host.tick_params(axis='y', colors=p1.get_color(), **tkw)
-#     par1.tick_params(axis='y', colors=p2.get_color(), **tkw)
-#     host.tick_params(axis='x', **tkw)
-
-
-
-#     lines = [p1, p2]
-
-#     host.legend(lines, [l.get_label() for l in lines],loc=loc)
-#     host.set_title(title)
-#     if savepath is not None:
-#         create_folder(savepath)
-#         if figname is None:
-#             figname = 'model_performance_twinx.pdf'
-#         figfile =os.path.join(savepath,figname)
-#         plt.savefig(figfile,bbox_inches = 'tight')
-#     plt.show()
-#
+    tkw = dict(labelsize=ticksize, width=1.5)
+    host.tick_params(axis='y', colors=p1.get_color(), **tkw)
+    par1.tick_params(axis='y', colors=p2.get_color(), **tkw)
+    host.tick_params(axis='x', **tkw)
 
 
 
-def pointplot_2axis(y1,y2,x1 = None, x2 = None, 
+    lines = [p1, p2]
+
+    host.legend(lines, [l.get_label() for l in lines],loc=loc)
+    host.set_title(title)
+    if savepath is not None:
+        create_folder(savepath)
+        if figname is None:
+            figname = 'model_performance_twinx.pdf'
+        figfile =os.path.join(savepath,figname)
+        plt.savefig(figfile,bbox_inches = 'tight')
+    plt.show()
+
+
+
+
+def pointplot_2axis_(y1,y2,x1 = None, x2 = None, 
                     title='',figfile = None,
                     xticklabels =None,
                     ylims=[None]*2,ylabels = [None]*2,colors = [None]*2,labels = [None]*2,
@@ -927,7 +927,7 @@ def pointplot_1axis(y1,x1 = None,
     ax.tick_params(axis='x', **tkw)
 
 
-    # plt.legend(loc =legend_loc)
+    plt.legend(loc =legend_loc)
     if savepath is not None:
         create_folder(savepath)
         if figname is None:

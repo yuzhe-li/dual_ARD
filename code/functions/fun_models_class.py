@@ -153,7 +153,7 @@ class Model():
         return W, X,yq
 
 
-    def mlpca(self):
+    def ppca(self):
         """
         y: M*N
         D:
@@ -198,45 +198,6 @@ class Model():
 
 
 
-    def mlpca_(self):
-        """
-        y: M*N
-        D:
-        -----------------
-        return:
-        W: M*D
-        X: D*N
-
-        ref: Tipping and Bishop, 1999. "Probabilistic principal component analysis."
-        """
-        y = self.y
-        y = y-y.mean(axis=1).reshape((-1,1))
-        q = self.q
-        M,N = y.shape
-        from sklearn.decomposition import PCA
-        pca = PCA(n_components=self.D)
-        pca.fit(y.T)
-        from numpy.linalg import svd
-        v,s,ut =svd(y.T)
-
-        _lambda = s**2/(N-1)
-        sigma2 = _lambda[q:].mean()
-
-        mu = np.mean(y,axis = 1)
-
-        W = ut[:q,:].T*np.sqrt(_lambda[:q]-sigma2)
-        M = np.matmul(W.T,W) + sigma2
-
-        x_mean_ = np.matmul(np.linalg.inv(M), W.T)
-        X = np.matmul(x_mean_,y-mu.reshape(-1,1))
-        yq = self.estimate_yq(W,X)
-
-        self.log_like = pca.score(y.T)
-        self.Q=[]
-        self.sigma2 = sigma2
-
-        return W,X,yq
-
     def fa(self):
         y = self.y
         
@@ -263,7 +224,7 @@ class Model():
             alpha =Q['alpha']
             rot_X = RotateGaussianARD(X)
             rot_W = RotateGaussianARD(W,alpha)
-        elif type =='mbpca':
+        elif type =='dual_ard':
             alpha =Q['alpha']
             gamma = Q['gamma']
             rot_X = RotateGaussianARD(X,gamma)
@@ -319,7 +280,7 @@ class Model():
 
 
 
-    def mbpca_common(self,a_gamma = 1e-3,b_gamma = 1e-3,a_alpha = 1e-3, b_alpha = 1e-3):
+    def dual_ard_common(self,a_gamma = 1e-3,b_gamma = 1e-3,a_alpha = 1e-3, b_alpha = 1e-3):
         y = self.y
         
         D = self.D
@@ -346,7 +307,7 @@ class Model():
         elif self.update_order =='wx':
              Q = VB(Y,W,X,alpha,gamma,tau)
 
-        return self.bayespy_common_steps(Q,type='mbpca')
+        return self.bayespy_common_steps(Q,type='dual_ard')
 
 
 
@@ -387,7 +348,7 @@ class Model():
         return self.bayespy_common_steps(Q,type ='bpca')
 
 
-    def mbpca_individual(self,a_gamma = 1e-3,b_gamma = 1e-3,a_alpha = 1e-3, b_alpha = 1e-3):
+    def dual_ard_individual(self,a_gamma = 1e-3,b_gamma = 1e-3,a_alpha = 1e-3, b_alpha = 1e-3):
         y = self.y
         D = self.D
         from bayespy.nodes import GaussianARD, Gamma, SumMultiply
@@ -412,7 +373,7 @@ class Model():
             Q = VB(Y,W,X,alpha,gamma,tau)
         W.initialize_from_random()
         X.initialize_from_random()
-        return self.bayespy_common_steps(Q,type ='mbpca')
+        return self.bayespy_common_steps(Q,type ='dual_ard')
 
 
     def xbpca_common(self,a = 1e-3,b = 1e-3):
@@ -519,12 +480,12 @@ class Model():
             corr = self.compare_correlation(X_sort,z,ica=ica)
             scores['corr'] = corr
         if 'lb' in score_names:
-            if self.name =='pca' or self.name == 'mlpca' or self.name =='fa':
+            if self.name =='pca' or self.name == 'ppca' or self.name =='fa':
                 scores['lb'] = 1e-5
             else:
                 scores['lb'] =self.lb
         if 'log_like' in score_names:
-            if self.name =='pca' or self.name == 'mlpca' or self.name =='fa':
+            if self.name =='pca' or self.name == 'ppca' or self.name =='fa':
                 scores['log_like'] = self.log_like
             else:
                 scores['log_like'] =self.lb_y/z.shape[1]
@@ -581,18 +542,18 @@ class Model():
         name = self.name
         if name =='pca':
             W,X,yq = self.pca()
-        elif name =='mlpca':
-            W,X,yq = self.mlpca()
+        elif name =='ppca':
+            W,X,yq = self.ppca()
         elif name =='fa':
             W,X,yq = self.fa()
         elif name =='bpca_common':
             W,X,yq = self.bpca_common(a=a_alpha, b = b_alpha)
         elif name =='bpca_individual':
             W,X,yq = self.bpca_individual(a = a_alpha, b = b_alpha)
-        elif name =='mbpca_common':
-            W,X,yq = self.mbpca_common(a_alpha = a_alpha, b_alpha = b_alpha, a_gamma=a_gamma, b_gamma = b_gamma)
-        elif name =='mbpca_individual':
-            W,X,yq = self.mbpca_individual(a_alpha = a_alpha, b_alpha = b_alpha, a_gamma=a_gamma, b_gamma = b_gamma)
+        elif name =='dual_ard_common':
+            W,X,yq = self.dual_ard_common(a_alpha = a_alpha, b_alpha = b_alpha, a_gamma=a_gamma, b_gamma = b_gamma)
+        elif name =='dual_ard_individual':
+            W,X,yq = self.dual_ard_individual(a_alpha = a_alpha, b_alpha = b_alpha, a_gamma=a_gamma, b_gamma = b_gamma)
         elif name =='xbpca_common':
             W,X,yq = self.xbpca_common(a= a_gamma, b = b_gamma)
         elif name =='xbpca_individual':
@@ -623,7 +584,7 @@ class Model():
 
     def imshow_wxyq(self,savepath = None,type ='yq',wmax = None, 
                     xmax = None, ymax = None, ymin = None,cmap ='coolwarm',
-                    y_sort_idx = None):
+                    y_sort_idx = None,figsize = (17,6)):
 
         W = self.W
         X = self.X
@@ -644,7 +605,7 @@ class Model():
             ymin = yq.min()
         if y_sort_idx is not None:
             yq = yq[y_sort_idx,:]
-        fig,ax = plt.subplots(figsize=(15,5), ncols=3, nrows=1)
+        fig,ax = plt.subplots(figsize=figsize, ncols=3, nrows=1)
         ax0 = ax[0].imshow(W,aspect ='auto',cmap = cmap,vmax = wmax, vmin = -wmax);
         ax1 = ax[1].imshow(X,aspect ='auto',cmap = cmap,vmax = xmax, vmin = -xmax);
         ax2 = ax[2].imshow(yq,aspect ='auto',vmax = ymax, vmin = ymin);
@@ -655,7 +616,8 @@ class Model():
 
         ax[0].set_title('W')
         ax[1].set_title('X')
-        ax[2].set_title('y_reconstructed(q='+str(q)+')')
+        # ax[2].set_title('y_reconstructed(q='+str(q)+')')
+        ax[2].set_title(r'$\hat{y}')
         fig.suptitle(self.name)
         fig.set_tight_layout(True)
         if savepath is not None:
@@ -683,7 +645,7 @@ class Models():
         if savepath is not None:
             create_folder(savepath)
         if model_names is None:
-            model_names =['pca','mlpca','bpca_common','mbpca_common','bpca_individual','mbpca_individual']
+            model_names =['pca','ppca','bpca_common','dual_ard_common','bpca_individual','dual_ard_individual']
         self.model_names = model_names
         self.update_order = update_order
 
@@ -740,7 +702,7 @@ class Models():
         best_seed_models = dict()
         for model_name in model_names:
             print(model_name, score_name)
-            if model_name =='pca' or model_name =='mlpca' or model_name =='fa':
+            if model_name =='pca' or model_name =='ppca' or model_name =='fa':
                 best_seed_models[model_name]= 0
             else:
                 model = Model(name =model_name)
@@ -772,8 +734,8 @@ class Models():
         # if score_name =='lb':
         #     if 'pca' in model_names:
         #         model_names.remove('pca')
-        #     if 'mlpca' in model_names:
-        #         model_names.remove('mlpca')
+        #     if 'ppca' in model_names:
+        #         model_names.remove('ppca')
         #     if 'fa' in model_names:
         #         model_names.remove('fa')
         score_models = dict()
@@ -804,7 +766,7 @@ class Models():
 
 
 
-def imshow_wxyq(W,X,yq,q = 3, figsize = (15,5),model_name ='pca',title = None,savepath = None,
+def imshow_wxyq(W,X,yq,q = 3, figsize = (17,6),model_name ='pca',title = None,savepath = None,
                 type ='yq',wmax = None, xmax = None, ymax = None, ymin = None,cmap ='coolwarm',
                 y_sort_idx = None,xtick_s = False, framerate = None,xtickgap=200):
     if q is None:
@@ -959,7 +921,7 @@ def get_model_name_labels(model_names):
     for i in range(len(model_names)):
         if model_names[i] == 'pca':
             xticks[i] = 'PCA'
-        elif model_names[i] =='mlpca':
+        elif model_names[i] =='ppca' or model_names[i]=='mlpca':
             xticks[i] = 'Probabilistic PCA'
         elif model_names[i] =='fa':
             xticks[i] = 'Factor analysis'
@@ -968,10 +930,10 @@ def get_model_name_labels(model_names):
         elif model_names[i] =='bpca_individual':
             # xticks[i] = 'Bayesian PCA (individual)'
             xticks[i] = 'variant Bayesian PCA'
-        elif model_names[i] =='mbpca_common':
+        elif model_names[i] =='dual_ard_common' or model_names[i] =='mbpca_common':
             # xticks[i] = 'dual ARD (common noise)'
             xticks[i] = 'variant dual ARD'
-        elif model_names[i] =='mbpca_individual':
+        elif model_names[i] =='dual_ard_individual'  or model_names[i] =='mbpca_individual':
             # xticks[i] = 'dual ARD (individual)'
             xticks[i] = 'dual ARD'
         elif model_names[i] =='population':
@@ -1052,7 +1014,7 @@ def plot_model_comparsion(score_models, score_name='evs',savepath = None,
 
 def imshow_model_wxyq(models_results, model_name = 'pca', cmap ='RdBu_r', 
                       wmax = 1, xmax = 3, ymax = 8, ymin = 0, 
-                      figsize = (15,5), savepath = None, title='PCA', 
+                      figsize = (17,6), savepath = None, title='PCA', 
                       y_sort_idx = None,xtick_s=False, framerate = None,xtickgap = 10):
     model = models_results[model_name]
 
