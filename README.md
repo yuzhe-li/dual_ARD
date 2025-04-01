@@ -15,7 +15,7 @@ conda env create -f environment.yml
 
 An example notebook (`example.ipynb`) is included to demonstrate basic usage of the `Model` class.
 
-### **Run a Single Model**
+### **Run a single model**
 ```python
 from fun_models_class import Model
 
@@ -33,7 +33,7 @@ model.imshow_wxyq()
 
 
 
-### Run several models for comparison 
+### Run multiple models for comparison 
 ```python
 from fun_models_class import Models
 
